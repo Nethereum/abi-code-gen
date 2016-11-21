@@ -1,0 +1,45 @@
+using System;
+using System.Threading.Tasks;
+using Nethereum.Hex.HexTypes;
+using Nethereum.Web3;
+
+namespace <%= namespace %>
+{
+   public class <%= capitalizeFirstLetter(contractName) %>Service
+   {
+        private readonly Web3.Web3 web3;
+        private string abi = @"<%- abiToText(abi) %>";
+        private Contract contract;
+        public <%= capitalizeFirstLetter(contractName) %>Service(Web3.Web3 web3, string address)
+        {
+            this.web3 = web3;
+            this.contract = web3.Eth.GetContract(abi, address);
+        }
+
+<%= abi.forEach(generateGetFunction) %>
+<%= abi.forEach(generateGetEvent) %>
+    }
+}
+
+<%_ 
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function abiToText(abi) {
+    return JSON.stringify(abi).split('\"').join('\'');
+}
+_%>
+<%_ function generateGetFunction(item) { _%>
+    <%_ if(item.type === 'function') { _%>
+        public Function GetFunction<%= capitalizeFirstLetter(item.name) %>() {
+            return contract.GetFunction("<%=item.name%>");
+        }
+<%_ } } _%>
+
+<%_ function generateGetEvent(item) { _%>
+    <%_ if(item.type === 'event') { _%>
+        public Event GetEvent<%= capitalizeFirstLetter(item.name) %>() {
+            return contract.GetEvent("<%=item.name%>");
+        }
+<%_ } } _%>
