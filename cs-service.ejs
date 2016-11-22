@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Nethereum.Hex.HexTypes;
+using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.Web3;
 
 namespace <%= namespace %>
@@ -8,7 +9,7 @@ namespace <%= namespace %>
    public class <%= capitalizeFirstLetter(contractName) %>Service
    {
         private readonly Web3.Web3 web3;
-        private string abi = @'<%- abiToText(abi) %>';
+        private string abi = @"<%- abiToText(abi) %>";
         private Contract contract;
         public <%= capitalizeFirstLetter(contractName) %>Service(Web3.Web3 web3, string address)
         {
@@ -20,9 +21,14 @@ namespace <%= namespace %>
 <%= abi.forEach(generateGetEvent) %>
 <%= abi.forEach(generateFunctionCall) %>
 <%= abi.forEach(generateFunctionTransaction) %>
+<%= abi.forEach(generateFunctionCallMultipleOutputsDTO) %>
 
     }
+
+<%= abi.forEach(generateFunctionOutputDTO) %>
+<%= abi.forEach(generateEventDTO) %>
 }
+
 
 <%_ 
 function capitalizeFirstLetter(string) {
@@ -30,7 +36,7 @@ function capitalizeFirstLetter(string) {
 }
 
 function abiToText(abi) {
-    return JSON.stringify(abi).split('\'').join('\'');
+    return JSON.stringify(abi).split('\"').join('\'');
 }
 
 function getGenericReturnType(item) {
@@ -43,13 +49,34 @@ function generateFunctionInputParameters(item) {
     var params = '';
     if (item.inputs !== null && item.inputs.length > 0){
         
-        item.inputs.forEach( function(input) {
+        item.inputs.forEach( function(input, index) {
             var prefix = ', ';
             if(params === '') prefix = '';
-            params = params + prefix + getTypeMap(input.type) + ' ' + input.name;
+            params = params + prefix + getTypeMap(input.type) + ' ' + getParamName(input.name, index);
         })
     } 
     return params;
+}
+
+function getParamName(param, index) {
+    if(param !== '') return param;
+    switch (index) {
+        case 0:
+            return 'a';
+        case 1:
+            return 'b';
+        case 2:
+            return 'c';
+        case 3:
+            return 'd';
+        case 4:
+            return 'e';
+        case 5:
+            return 'f';
+        case 6:
+            return 'g';
+    }
+    return 'h';
 }
 
 function generateFunctionTransactionInputParameters(item) {
@@ -62,10 +89,10 @@ function generateFunctionParameters(item) {
     var params = '';
     if (item.inputs !== null && item.inputs.length > 0){
         
-        item.inputs.forEach( function(input) {
+        item.inputs.forEach( function(input, index) {
             var prefix = ', ';
             if(params === '') prefix = '';
-            params = params + prefix + input.name;
+            params = params + prefix + getParamName(input.name, index);
         })
     } 
     return params;
@@ -74,8 +101,7 @@ function generateFunctionParameters(item) {
 function getReturnType(item) {
     if (item.outputs !== null && item.outputs.length === 1) {
         return getTypeMap(item.outputs[0].type);
-    }
-    return null;
+    } return null;
 }
 
 function getTypeMap(typeName) {
@@ -167,22 +193,30 @@ _%>
 <%_ function generateGetFunction(item) { _%>
     <%_ if(item.type === 'function') { _%>
         public Function GetFunction<%= capitalizeFirstLetter(item.name) %>() {
-            return contract.GetFunction('<%=item.name%>');
+            return contract.GetFunction("<%=item.name%>");
         }
 <%_ } } _%>
 
 <%_ function generateGetEvent(item) { _%>
     <%_ if(item.type === 'event') { _%>
         public Event GetEvent<%= capitalizeFirstLetter(item.name) %>() {
-            return contract.GetEvent('<%=item.name%>');
+            return contract.GetEvent("<%=item.name%>");
         }
 <%_ } } _%>
 
 <%_ function generateFunctionCall(item) { _%>
-    <%_ if(item.type === 'function') { _%>
+    <%_ if(item.type === 'function' && (item.outputs === null || item.outputs.length <= 1)) { _%>
         public async Task<%- getGenericReturnType(item) -%> <%= capitalizeFirstLetter(item.name) %>AsyncCall(<%- generateFunctionInputParameters(item) -%>) {
             var function = GetFunction<%=capitalizeFirstLetter(item.name)%>();
             return function.CallAsync<%- getGenericReturnType(item) -%>(<%- generateFunctionParameters(item) -%>);
+        }
+<%_ } } _%>
+
+<%_ function generateFunctionCallMultipleOutputsDTO(item) { _%>
+    <%_ if(item.type === 'function' && (item.outputs !== null || item.outputs.length > 1)) { _%>
+        public async Task<<%- capitalizeFirstLetter(item.name)  -%>DTO> <%= capitalizeFirstLetter(item.name) %>AsyncCall(<%- generateFunctionInputParameters(item) -%>) {
+            var function = GetFunction<%=capitalizeFirstLetter(item.name)%>();
+            return function.CallDeserializingToObjectAsync<<%- capitalizeFirstLetter(item.name)  -%>DTO>(<%- generateFunctionParameters(item) -%>);
         }
 <%_ } } _%>
 
@@ -194,4 +228,39 @@ _%>
             return function.SendTransactionAsync(addressFrom, gas, valueAmount, <%- generateFunctionParameters(item) -%>);
         }
 <%_ } } _%>
+
+<%_ function generateFunctionOutputDTOProperty(param, index) { _%>
+        [Parameter("<%=param.type%>", "<%=param.name%>", <%=index + 1%>)]
+        public <%-getTypeMap(param.type)-%> <%-capitalizeFirstLetter(getParamName(param.name, index))-%> {get; set;}
+
+<%_ }  _%>
+
+
+<%_ function generateEventDTOProperty(param, index) { _%>
+        [Parameter("<%=param.type%>", "<%=param.name%>", <%=index + 1%>, <%= param.indexed ? 'true' : 'false'%>)]
+        public <%-getTypeMap(param.type)-%> <%-capitalizeFirstLetter(getParamName(param.name, index))-%> {get; set;}
+
+<%_ }  _%>
+
+<%_ function generateFunctionOutputDTO(item) { _%>
+    <%_ if(item.type === 'function' && item.outputs !== null && item.outputs.length > 1 ) { _%>
+    [FunctionOutput]
+    public class <%=capitalizeFirstLetter(item.name)%>DTO 
+    {
+<%- item.outputs.forEach(generateFunctionOutputDTOProperty) -%>
+    }
+
+<%_ } } _%>
+
+<%_ function generateEventDTO(item) { _%>
+    <%_ if(item.type === 'event' && item.inputs !== null && item.inputs.length > 1 ) { _%>
+    public class <%=capitalizeFirstLetter(item.name)%>EventDTO 
+    {
+<%- item.inputs.forEach(generateEventDTOProperty) -%>
+    }
+
+<%_ } } _%>
+
+
+
 
