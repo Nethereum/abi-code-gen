@@ -6,7 +6,8 @@ var path = join(__dirname, '/cs-service.ejs');
 
 data = { namespace: "MyNamespace",
          contractName: "myContract",
-         abi: eval(fs.read('test.abi'))
+         byteCode: fs.read('test.bin'),
+         abi: eval(fs.read('functionDTOTest.abi'))
        };
 
 if(fs.exists(fileName)){
