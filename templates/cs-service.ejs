@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using System.Numerics;
 using Nethereum.Hex.HexTypes;
 using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.Web3;
@@ -8,20 +9,20 @@ namespace <%= locals.namespace ? namespace : 'DefaultNamespace' %>
 {
    public class <%= capitalizeFirstLetter(getContractName()) %>Service
    {
-        private readonly Web3.Web3 web3;
+        private readonly Web3 web3;
 
         public static string ABI = @"<%- abiToText(abi) %>";
 
         public static string BYTE_CODE = "0x<%-bytecode%>";
 
-        public static  async Task<string> DeployContractAsync(Web3.Web3 web3, string addressFrom, <%-generateConstructorInputParameters(abi)%> HexBigInteger gas = null, HexBigInteger valueAmount = null) 
+        public static Task<string> DeployContractAsync(Web3 web3, string addressFrom, <%-generateConstructorInputParameters(abi)%> HexBigInteger gas = null, HexBigInteger valueAmount = null) 
         {
-            return await web3.Eth.DeployContract.SendRequestAsync(ABI, BYTE_CODE, addressFrom, gas, valueAmount <%-generateConstructorParameters(abi)%>);
+            return web3.Eth.DeployContract.SendRequestAsync(ABI, BYTE_CODE, addressFrom, gas, valueAmount <%-generateConstructorParameters(abi)%>);
         }
 
         private Contract contract;
 
-        public <%= capitalizeFirstLetter(getContractName()) %>Service(Web3.Web3 web3, string address)
+        public <%= capitalizeFirstLetter(getContractName()) %>Service(Web3 web3, string address)
         {
             this.web3 = web3;
             this.contract = web3.Eth.GetContract(ABI, address);
@@ -247,16 +248,16 @@ _%>
 <%_ } } 
 _%>
 <%_ function generateFunctionCall(item) { _%>
-    <%_ if(item.type === 'function' && (item.outputs === null || item.outputs.length <= 1)) { _%>
-        public async Task<%- getGenericReturnType(item) -%> <%= capitalizeFirstLetter(item.name) %>AsyncCall(<%- generateFunctionInputParameters(item) -%>) {
+    <%_ if(item.type === 'function' && (item.outputs !=- null && item.outputs.length === 1)) { _%>
+        public Task<%- getGenericReturnType(item) -%> <%= capitalizeFirstLetter(item.name) %>AsyncCall(<%- generateFunctionInputParameters(item) -%>) {
             var function = GetFunction<%=capitalizeFirstLetter(item.name)%>();
             return function.CallAsync<%- getGenericReturnType(item) -%>(<%- generateFunctionParameters(item) -%>);
         }
 <%_ } } 
 _%>
 <%_ function generateFunctionCallMultipleOutputsDTO(item) { _%>
-    <%_ if(item.type === 'function' && (item.outputs !== null || item.outputs.length > 1)) { _%>
-        public async Task<<%- capitalizeFirstLetter(item.name)  -%>DTO> <%= capitalizeFirstLetter(item.name) %>AsyncCall(<%- generateFunctionInputParameters(item) -%>) {
+    <%_ if(item.type === 'function' && (item.outputs !== null && item.outputs.length > 1)) { _%>
+        public Task<<%- capitalizeFirstLetter(item.name)  -%>DTO> <%= capitalizeFirstLetter(item.name) %>AsyncCall(<%- generateFunctionInputParameters(item) -%>) {
             var function = GetFunction<%=capitalizeFirstLetter(item.name)%>();
             return function.CallDeserializingToObjectAsync<<%- capitalizeFirstLetter(item.name)  -%>DTO>(<%- generateFunctionParameters(item) -%>);
         }
@@ -264,7 +265,7 @@ _%>
 _%>
 <%_ function generateFunctionTransaction(item) { _%>
     <%_ if(item.type === 'function' && item.constant === false) { _%>
-        public async Task<string> <%= capitalizeFirstLetter(item.name) %>Async(string addressFrom, <%- generateFunctionTransactionInputParameters(item) -%> HexBigInteger gas = null, HexBigInteger valueAmount = null) {
+        public Task<string> <%= capitalizeFirstLetter(item.name) %>Async(string addressFrom, <%- generateFunctionTransactionInputParameters(item) -%> HexBigInteger gas = null, HexBigInteger valueAmount = null) {
             var function = GetFunction<%=capitalizeFirstLetter(item.name)%>();
             return function.SendTransactionAsync(addressFrom, gas, valueAmount<%- generateFunctionParametersCommaPrefix(item) -%>);
         }

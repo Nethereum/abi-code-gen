@@ -1,6 +1,6 @@
 {
   "name": "abi-code-gen",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Generic code generator from Ethereum solidity compiled output (abi, bytecode, etc), using predefined \"ejs\" templates",
   "main": "index.js",
   "directories": {
