@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using System.Numerics;
 using Nethereum.Hex.HexTypes;
 using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.Web3;
