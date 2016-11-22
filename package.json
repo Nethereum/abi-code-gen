@@ -1,0 +1,35 @@
+{
+  "name": "abi-code-gen",
+  "version": "0.0.1",
+  "description": "Generic code generator from Ethereum solidity compiled output (abi, bytecode, etc), using predefined \"ejs\" templates",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "dependencies": {
+    "ejs": "^2.5.2",
+    "fs-sync": "^1.0.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nethereum/abi-code-gen.git"
+  },
+  "keywords": [
+    "Ethereum",
+    "ABI",
+    "Code",
+    "generation",
+    "Nethereum",
+    "Ejs"
+  ],
+  "author": "Juan Blanco",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Nethereum/abi-code-gen/issues"
+  },
+  "homepage": "https://github.com/Nethereum/abi-code-gen#readme"
+}
