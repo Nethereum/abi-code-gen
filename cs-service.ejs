@@ -8,7 +8,7 @@ namespace <%= namespace %>
    public class <%= capitalizeFirstLetter(contractName) %>Service
    {
         private readonly Web3.Web3 web3;
-        private string abi = @"<%- abiToText(abi) %>";
+        private string abi = @'<%- abiToText(abi) %>';
         private Contract contract;
         public <%= capitalizeFirstLetter(contractName) %>Service(Web3.Web3 web3, string address)
         {
@@ -18,6 +18,9 @@ namespace <%= namespace %>
 
 <%= abi.forEach(generateGetFunction) %>
 <%= abi.forEach(generateGetEvent) %>
+<%= abi.forEach(generateFunctionCall) %>
+<%= abi.forEach(generateFunctionTransaction) %>
+
     }
 }
 
@@ -27,19 +30,168 @@ function capitalizeFirstLetter(string) {
 }
 
 function abiToText(abi) {
-    return JSON.stringify(abi).split('\"').join('\'');
+    return JSON.stringify(abi).split('\'').join('\'');
 }
+
+function getGenericReturnType(item) {
+    var returnType = getReturnType(item);
+    if(item === null) return '';
+    return '<' + returnType + '>';
+}
+
+function generateFunctionInputParameters(item) {
+    var params = '';
+    if (item.inputs !== null && item.inputs.length > 0){
+        
+        item.inputs.forEach( function(input) {
+            var prefix = ', ';
+            if(params === '') prefix = '';
+            params = params + prefix + getTypeMap(input.type) + ' ' + input.name;
+        })
+    } 
+    return params;
+}
+
+function generateFunctionTransactionInputParameters(item) {
+    var params = generateFunctionInputParameters(item);
+    if(params !== '') return params + ',';
+    return params;
+}
+
+function generateFunctionParameters(item) {
+    var params = '';
+    if (item.inputs !== null && item.inputs.length > 0){
+        
+        item.inputs.forEach( function(input) {
+            var prefix = ', ';
+            if(params === '') prefix = '';
+            params = params + prefix + input.name;
+        })
+    } 
+    return params;
+}
+
+function getReturnType(item) {
+    if (item.outputs !== null && item.outputs.length === 1) {
+        return getTypeMap(item.outputs[0].type);
+    }
+    return null;
+}
+
+function getTypeMap(typeName) {
+    var indexFirstBracket = typeName.indexOf('[');
+    if (indexFirstBracket > -1) {
+        var elementTypeName = typeName.substring(0, indexFirstBracket);
+        return GetTypeMap(elementTypeName) + '[]';
+    }
+     if ('bool' === typeName) {
+        return typeName;
+    }
+
+    if (typeName.startsWith('int')) {
+        //default
+        if(typeName.length === 3) {
+            return 'BigInteger';
+        }
+
+        var length = parseInt(typeName.substring(3));
+        
+        if(length > 64) {
+            return 'BigInteger';
+        }
+
+        if(length <= 64 && length > 32) {
+            return 'long';
+        }
+        //ints are in 8 bits
+        if(length === 32 ) {
+            return 'int';
+        }
+
+        if(length === 16 ) {
+            return 'short';
+        }
+
+        if(length === 8 ) {
+            return 'sbyte';
+        }
+    }
+
+    if (typeName.startsWith('uint')) {
+       
+       if(typeName.length === 4) {
+            return 'BigInteger';
+       }
+
+    var length = parseInt(typeName.substring(4));
+        
+        if(length > 64) {
+            return 'BigInteger';
+        }
+
+        if(length <= 64 && length > 32) {
+            return 'ulong';
+        }
+         //uints are in 8 bits steps
+        if(length === 32 ) {
+            return 'int';
+        }
+
+        if(length === 16 ) {
+            return 'short';
+        }
+
+        if(length === 8 ) {
+            return 'byte';
+        }
+    }
+
+    if (typeName === 'address') {
+        return 'string';
+    }
+
+    if (typeName === 'string') {
+        return 'string';
+    }
+
+    if (typeName === 'bytes') {
+        return 'byte[]';
+    }
+
+    if (typeName.startsWith('bytes')) {
+        return 'byte[]';
+    }
+}
+
 _%>
 <%_ function generateGetFunction(item) { _%>
     <%_ if(item.type === 'function') { _%>
         public Function GetFunction<%= capitalizeFirstLetter(item.name) %>() {
-            return contract.GetFunction("<%=item.name%>");
+            return contract.GetFunction('<%=item.name%>');
         }
 <%_ } } _%>
 
 <%_ function generateGetEvent(item) { _%>
     <%_ if(item.type === 'event') { _%>
         public Event GetEvent<%= capitalizeFirstLetter(item.name) %>() {
-            return contract.GetEvent("<%=item.name%>");
+            return contract.GetEvent('<%=item.name%>');
         }
 <%_ } } _%>
+
+<%_ function generateFunctionCall(item) { _%>
+    <%_ if(item.type === 'function') { _%>
+        public async Task<%- getGenericReturnType(item) -%> <%= capitalizeFirstLetter(item.name) %>AsyncCall(<%- generateFunctionInputParameters(item) -%>) {
+            var function = GetFunction<%=capitalizeFirstLetter(item.name)%>();
+            return function.CallAsync<%- getGenericReturnType(item) -%>(<%- generateFunctionParameters(item) -%>);
+        }
+<%_ } } _%>
+
+
+<%_ function generateFunctionTransaction(item) { _%>
+    <%_ if(item.type === 'function' && item.constant === false) { _%>
+        public async Task<string> <%= capitalizeFirstLetter(item.name) %>Async(string addressFrom, <%- generateFunctionTransactionInputParameters(item) -%> HexBigInteger gas = null, HexBigInteger valueAmount = null) {
+            var function = GetFunction<%=capitalizeFirstLetter(item.name)%>();
+            return function.SendTransactionAsync(addressFrom, gas, valueAmount, <%- generateFunctionParameters(item) -%>);
+        }
+<%_ } } _%>
+
