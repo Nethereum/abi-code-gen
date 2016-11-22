@@ -4,15 +4,15 @@ using Nethereum.Hex.HexTypes;
 using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.Web3;
 
-namespace <%= namespace %>
+namespace <%= locals.namespace ? namespace : 'DefaultNamespace' %>
 {
-   public class <%= capitalizeFirstLetter(contractName) %>Service
+   public class <%= capitalizeFirstLetter(getContractName()) %>Service
    {
         private readonly Web3.Web3 web3;
 
         public static string ABI = @"<%- abiToText(abi) %>";
 
-        public static string BYTE_CODE = "0x<%-byteCode%>";
+        public static string BYTE_CODE = "0x<%-bytecode%>";
 
         public static  async Task<string> DeployContractAsync(Web3.Web3 web3, string addressFrom, <%-generateConstructorInputParameters(abi)%> HexBigInteger gas = null, HexBigInteger valueAmount = null) 
         {
@@ -21,7 +21,7 @@ namespace <%= namespace %>
 
         private Contract contract;
 
-        public <%= capitalizeFirstLetter(contractName) %>Service(Web3.Web3 web3, string address)
+        public <%= capitalizeFirstLetter(getContractName()) %>Service(Web3.Web3 web3, string address)
         {
             this.web3 = web3;
             this.contract = web3.Eth.GetContract(ABI, address);
@@ -39,7 +39,12 @@ namespace <%= namespace %>
 <%= abi.forEach(generateEventDTO) %>
 }
 
-<%_ 
+<%_
+
+function getContractName() {
+   return locals.contractName ? locals.contractName : 'DefaultContractName';
+}
+
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }

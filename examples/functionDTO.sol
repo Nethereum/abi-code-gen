@@ -1,4 +1,4 @@
-contract test {
+contract functionDTO {
     
     mapping (bytes32=>Document[]) public documents;
 

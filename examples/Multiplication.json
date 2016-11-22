@@ -1,0 +1,18 @@
+{
+    "abi": "[{\"constant\":false,\"inputs\":[{\"name\":\"a\",\"type\":\"int256\"}],\"name\":\"multiply\",\"outputs\":[{\"name\":\"r\",\"type\":\"int256\"}],\"payable\":false,\"type\":\"function\"},{\"inputs\":[{\"name\":\"multiplier\",\"type\":\"int256\"}],\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"a\",\"type\":\"int256\"},{\"indexed\":true,\"name\":\"sender\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"result\",\"type\":\"int256\"}],\"name\":\"Multiplied\",\"type\":\"event\"}]\n",
+    "bytecode": "606060405260405160208060b983395060806040525160008190555060928060276000396000f3606060405260e060020a60003504631df4f1448114601c575b6002565b346002576080600435600054604080519183028083529051909173ffffffffffffffffffffffffffffffffffffffff33169184917f841774c8b4d8511a3974d7040b5bc3c603d304c926ad25d168dacd04e25c4bed919081900360200190a3919050565b60408051918252519081900360200190f3",
+    "functionHashes": {
+        "multiply(int256)": "1df4f144"
+    },
+    "gasEstimates": {
+        "creation": [
+            20106,
+            29200
+        ],
+        "external": {
+            "multiply(int256)": 2058
+        },
+        "internal": {}
+    },
+    "runtimeBytecode": "606060405260e060020a60003504631df4f1448114601c575b6002565b346002576080600435600054604080519183028083529051909173ffffffffffffffffffffffffffffffffffffffff33169184917f841774c8b4d8511a3974d7040b5bc3c603d304c926ad25d168dacd04e25c4bed919081900360200190a3919050565b60408051918252519081900360200190f3"
+}

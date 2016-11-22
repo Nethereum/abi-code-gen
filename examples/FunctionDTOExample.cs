@@ -4,9 +4,9 @@ using Nethereum.Hex.HexTypes;
 using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.Web3;
 
-namespace MyNamespace
+namespace Tutorials
 {
-   public class MyContractService
+   public class FunctionDTOExampleService
    {
         private readonly Web3.Web3 web3;
 
@@ -21,7 +21,7 @@ namespace MyNamespace
 
         private Contract contract;
 
-        public MyContractService(Web3.Web3 web3, string address)
+        public FunctionDTOExampleService(Web3.Web3 web3, string address)
         {
             this.web3 = web3;
             this.contract = web3.Eth.GetContract(ABI, address);
@@ -54,6 +54,7 @@ namespace MyNamespace
             return function.CallDeserializingToObjectAsync<DocumentsDTO>(a, b);
         }
 
+
     }
 
     [FunctionOutput]
@@ -69,6 +70,8 @@ namespace MyNamespace
         public string Sender {get; set;}
 
     }
+
+
 
 }
 
